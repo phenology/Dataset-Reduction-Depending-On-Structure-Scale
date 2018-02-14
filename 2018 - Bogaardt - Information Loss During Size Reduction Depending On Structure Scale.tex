@@ -48,23 +48,16 @@
 \maketitle\thispagestyle{empty} %% <-- you need this for the first page
 
 \begin{abstract}
-The analysis of large datasets can be time consuming and costly. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article looks at several such techniques and at the resolution of datasets compared with the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, there is a high level of auto correlation and the structure of the field has a large scale. Datasets may not need to have high resolution to describe such fields faithfullly. Using generated \textit{Gaussian Random Fields} with various levels of spatial auto correlation, we examine several exact and approximate analysis techniques. Our aim is to find a relation between performance and the scale of the structure of the input datasets.
+The analysis of large datasets can be time consuming and costly. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article looks at several such techniques and at the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, there is a high level of auto correlation and the structure of the field has a large scale. Datasets need not have a high resolution to describe such fields faithfullly. Using generated \textit{Gaussian Random Fields} with various levels of spatial auto correlation, we examine several exact and approximate analysis techniques. Our aim is to find a relation between performance and the scale of the structure described by the input datasets.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:Introduction}
 
-\subsection{CCA and MCA Analyses}
-\label{sec:Introduction CCA and MCA Analyses}
-
-In an MCA, modes are found where the left- and the right-field covary maximally~\cite{Bretherton1992}. One technique to find these modes is to perform an SVD on the product of the datasets. That is why the term SVD is often used synonymously with MCA.
-In an CCA, modes are found where the left- and the right-field correlate maximally. In practice, the datasets are first standardized before multiplied and decomposed. MCA and CCA are very much related, but the resulting modes and vectors need not be the same~\cite{Bretherton1992}.
-In a PCA, the first and the second dataset are identical. Whether to maximize the covariance or the correlation depends on whether the units of each vector is the same.
-
 \subsection{Gaussian Random Spatial Field}
 \label{sec:Introduction Gaussian Random Spatial Field}
 
-The singular values of a matrix represent the amount of variance in the original dataset explained by the associated singular vector. The explainedVariance function takes the list of singular values and returns a list of explained variance. This can e.g. be used in a plot. ~\cite{Moran1950} ~\cite{PySAL}
+The singular values of a zero-mean matrix represent the amount of variance in the original dataset explained by the associated singular vector. The explainedVariance function takes the list of singular values and returns a list of explained variance. This can e.g. be used in a plot. ~\cite{Moran1950} ~\cite{PySAL}
 
 The $\alpha$ is a measure of the spatial autocorrelation of the field. In particular, fields with large scale structure have a more negative $\alpha$. Additionally, the size of the singular values can be plotted. This is related to the power spectrum and will also provide information about the scale of the structure in the field. Finally, there are other measures of spatial autocorrelation. These include the Gamma Index and Moran's I. The Python module pysal contains functions to calculate these values. We will include them for each plot.
 
@@ -82,6 +75,13 @@ When $\alpha$ is less negative, the Gaussian Random Field has smaller scale stru
 \label{sec:Introduction Gaussian Random Spatial-Temporal Field}
 
 In many real-world applications, the analysis of a field does not only involve a single time snapshot. In fact, it often includes data over multiple weeks, months or years, where the field over the entire time period does not change drastically. Just as there is spatial autocorrelation, there is temporal autocorrelation. In principle, there can be a different level of correlation over time than over space. However, for simplicity, we are using the same $\alpha$ determine the level of autocorrelation in all dimensions.
+
+\subsection{CCA and MCA Analyses}
+\label{sec:Introduction CCA and MCA Analyses}
+
+In an MCA, modes are found where the left- and the right-field covary maximally~\cite{Bretherton1992}. One technique to find these modes is to perform an SVD on the product of the datasets. That is why the term SVD is often used synonymously with MCA.
+In an CCA, modes are found where the left- and the right-field correlate maximally. In practice, the datasets are first standardized before multiplied and decomposed. MCA and CCA are very much related, but the resulting modes and vectors need not be the same~\cite{Bretherton1992}.
+In a PCA, the first and the second dataset are identical. Whether to maximize the covariance or the correlation depends on whether the units of each vector is the same.
 
 \section{Techniques}
 \label{Techniques}
