@@ -54,37 +54,19 @@ The analysis of large datasets can be time consuming and costly. Often, techniqu
 \section{Introduction}
 \label{sec:Introduction}
 
-In this article, we will reduce the size of datasets representing Gaussian Random Fields using various techniques and investigate how much information is lost. These techniques can be useful when the original dataset is very large and performing analyses on it is costly.
+\subsection{CCA and MCA Analyses}
+\label{sec:Introduction CCA and MCA Analyses}
 
-\subsection{CCA and Related Analyses}
-\label{sec:Introduction CCA and Related Analyses}
-
-In an MCA, modes are found where the left- and the right-field covary maximally (1992 - Bretherton, Smith, Wallace). One technique to find these modes is to perform an SVD on the product of the datasets. That is why the term SVD is often used synonymously with MCA.
-In an CCA, modes are found where the left- and the right-field correlate maximally. In practice, the datasets are first standardized before multiplied and decomposed. MCA and CCA are very much related, but the resulting modes and vectors need not be the same (1992 - Bretherton, Smith, Wallace).
+In an MCA, modes are found where the left- and the right-field covary maximally~\cite{Bretherton1992}. One technique to find these modes is to perform an SVD on the product of the datasets. That is why the term SVD is often used synonymously with MCA.
+In an CCA, modes are found where the left- and the right-field correlate maximally. In practice, the datasets are first standardized before multiplied and decomposed. MCA and CCA are very much related, but the resulting modes and vectors need not be the same~\cite{Bretherton1992}.
 In a PCA, the first and the second dataset are identical. Whether to maximize the covariance or the correlation depends on whether the units of each vector is the same.
-
-\subsection{Pre-processing}
-\label{sec:Introductio Pre-processingn}
-
-It has been suggested that filtering data for noise is important before the statistical analysis (1987 - Barnett, Preisendorfer). This is because any statistical analysis will choose its regression-coefficients so as to optimize the fit. It may occur that two noise-vectors in the two fields coincidentally covary. In a CCA, where the fields are standardized, this resulting mode may appear important even though it stems from noise. In an MCA, the variance of the noise will be low, so the chance that it will appear as an important mode is less (1992 - Bretherton, Smith, Wallace). One method of finding the right level of filtering is by bootstrapping/cross-validating the results (1999 - Livezey, Smith).
-A second type of pre-processing relates to weighting the input data (1999 - Livezey, Smith). One reason to weight spatial data is to undo the effect of the curvature of the Earth. When comparing two datasets with different number of spatial points can it also be important to weight data.
-
-\subsection{QR-Decomposition and Projections}
-\label{sec:Introduction QR-Decomposition and Projections}
-
-By rotating (projecting) rectangular matrices, the action can be captured by a square matrix with dimensions equal to that of the smallest dimension of the original, rectangular matrix. This can be done with a QR-decomposition, where R is a square matrix and Q a projection matrix. It can also be done via an SVD, where the original matrix is decomposed into U, S and V. The product of S and V gives a square matrix, with S the projection matrix.
-
-\subsection{Post-processing and Model Assessment}
-\label{sec:Introduction Post-processing and Model Assessment}
-
-Any rotation or projection applied in the pre-processing step to the datasets must be undone. Furthermore, the resulting model must be assessed. This can be done using bootstrapping/cross-validation (1999 - Livezey, Smith).
 
 \subsection{Gaussian Random Spatial Field}
 \label{sec:Introduction Gaussian Random Spatial Field}
 
-The singular values of a matrix represent the amount of variance in the original dataset explained by the associated singular vector. The explainedVariance function takes the list of singular values and returns a list of explained variance. This can e.g. be used in a plot.
+The singular values of a matrix represent the amount of variance in the original dataset explained by the associated singular vector. The explainedVariance function takes the list of singular values and returns a list of explained variance. This can e.g. be used in a plot. ~\cite{Moran1950} ~\cite{PySAL}
 
-The $\alpha$ is a measure of the spatial autocorrelation of the field. In particular, fields with large scale structure have a more negative $\alpha$. Additionally, the size of the singular values can be plotted. This is related to the power spectrum and will also provide information about the scale of the structure in the field. Fianlly, there are other measures of spatial autocorrelation. These include the Gamma Index and Moran's I. The Python module pysal contains functions to calculate these values. We will include them for each plot.
+The $\alpha$ is a measure of the spatial autocorrelation of the field. In particular, fields with large scale structure have a more negative $\alpha$. Additionally, the size of the singular values can be plotted. This is related to the power spectrum and will also provide information about the scale of the structure in the field. Finally, there are other measures of spatial autocorrelation. These include the Gamma Index and Moran's I. The Python module pysal contains functions to calculate these values. We will include them for each plot.
 
 \begin{figure}[h]
 \begin{center}
@@ -109,7 +91,7 @@ This section will discuss four techniques to analyse large datasets efficiently 
 \subsection{Exact Norm Difference via SVD}
 \label{sec:Techniques Exact Norm Difference via SVD}
 
-In real-world application, one often wants to find the norm of the difference between two fields. This can be done by subtracting one matrix from the other and calculating the norm. However, for large matrices, this can be inefficient. Performing an SVD of both matrices can reduce the internal calculations. The normDifferenceFromUSVs function can take such input SVDs and determine the norm of their difference in an efficient manner, provided the number of singular values is small. The result is mathematically identical to the full calculation, which means that any error will be of the order of machine-precision.
+In real-world application, one often wants to find the norm of the difference between two fields. This can be done by subtracting one matrix from the other and calculating the norm. However, for large matrices, this can be inefficient. Performing an SVD of both matrices can reduce the internal calculations. Figure~\ref{fig:normDifferenceFromUSVs} shows a procedure which takes such input SVDs and determine the norm of their difference in an efficient manner, provided the number of singular values is small. The result is mathematically identical to the full calculation, which means that any error will be of the order of machine-precision.
 
 \begin{figure}[h]
 \begin{center}
@@ -119,12 +101,12 @@ In real-world application, one often wants to find the norm of the difference be
 \end{center}
 \end{figure}
 
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+For very large datasets, the SVDs may be obtained using a random algorithm reviewed extensively in an article by Halko et al.~\cite{Halko2011}. In section~\ref{sec:Techniques Approximate SVD via Dimensionality Reduction}, we will also apply this technique to our generated fields. In this case, the resulting norm wil no longer be exact, but the error can be made very small.
 
 \subsection{Exact SVD via QR Decomposition}
 \label{sec:Techniques Exact SVD via QR Decomposition}
 
-In real-world application, one often wants to find the relation between two fields. This can be done by performing an SVD of the cross-correlation matrix of these two fields. In particular, the two input datasets often have the various gridpoint as rows and will have the sample of recorded values over time as columns. Multiplying these gives the cross-correlation matrix. However, for highly rectangular matrices, when there are many spatial gridpoint but few temporal samples, the resulting cross-correlation matrix is inefficiently large. The qrProductSVD function can take such input data and perform an SVD in an efficient manner. The result is mathematically identical to the full SVD, which means that the difference will be at machine-precision.
+In real-world applications, one often wants to find the relation between two fields. Analyses such as the MCA and CCA discussed in section~\ref{sec:Introduction CCA and MCA Analyses} rely on performing an SVD of the cross-covariance or cross-correlation matrix of the two fields. In particular, the two input datasets often have the various gridpointa as rows and will have the sample of recorded values over time as columns. Multiplying these gives the cross-correlation matrix. However, for highly rectangular matrices, when there are many spatial gridpoint but few temporal samples, the resulting cross-correlation matrix is inefficiently large. The qrProductSVD function can take such input data and perform an SVD in an efficient manner. The result is mathematically identical to the full SVD, which means that the difference will be at machine-precision.
 
 \begin{figure}[h]
 \begin{center}
@@ -134,13 +116,10 @@ In real-world application, one often wants to find the relation between two fiel
 \end{center}
 \end{figure}
 
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-
 \subsection{Approximate SVD via Spatial Coarsening}
 \label{sec:Techniques Approximate SVD via Spatial Coarsening}
 
 Although the qrProductSVD function works well for two rectangular matrices, sometimes the input data is large and square. Performing an SVD on such a large dataset will be time consuming and, perhaps, inefficient given the desired level of precision. When a field have large scale structure, the values of neighbouring cells do not change drastically. This is what autocorrelation means. As such, perhaps neighbouring cells can be averaged together to produce a smaller dataset which still faithfully describes the original field. The matrixToGrid function can cut a matrix into multiple smaller sections.
-
 
 \begin{figure}[h]
 \begin{center}
@@ -193,7 +172,6 @@ The Randomised Dimensionality Reduction process can also be applied to the CCA o
 
 To see the effect of dimensionality reduction on such a matrix product, let's generate two Gaussian Random Fields and plot their corss-correlation matrix together with a reduced version. To determine precisely how much information is lost during the reduction, we should look at the variance of the datasets. The norm of the difference between the reduced matrix and the original is the amount of information lost in the reduction process.
 
-
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.5]{Results/plotRandomisedSizeReducedMatrixProduct.pdf}
@@ -208,7 +186,7 @@ Due to the multiplication step in this analysis, the typical error due to reduct
 
 Note that, unlike the coarsening procedure, the reduction is not applied on each time-slice of the spatial field, but rather on the spatially-flattened time-series. Therefore, the level of spatial auto correlation may not be as important as the level of temporal auto correlation. The proper analysis of this is left for further research.
 
-The reduction of the number of dimensions of each input dataset is actually advised by some researcher to combat noisy data.
+The reduction of the number of dimensions of each input dataset is actually advised by some researcher. It has been suggested that filtering data for noise is important before the statistical analysis~\cite{Barnett1987}. This is because any statistical analysis will choose its regression-coefficients so as to optimize the fit. It may occur that two noise-vectors in the two fields coincidentally covary. In a CCA, where the fields are standardized, this resulting mode may appear important even though it stems from noise. In an MCA, the variance of the noise will be low, so the chance that it will appear as an important mode is less~\cite{Bretherton1992}. One method of finding the right level of filtering is by bootstrapping/cross-validating the results~\cite{Livezey1999}.
 
 \section{Applications}
 \label{Applications}
