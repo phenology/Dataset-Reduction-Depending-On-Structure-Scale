@@ -48,70 +48,75 @@
 \maketitle\thispagestyle{empty} %% <-- you need this for the first page
 
 \begin{abstract}
-The analysis of large datasets can be time consuming and costly. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article looks at several such techniques and at the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, there is a high level of auto correlation and the structure of the field has a large scale. Datasets need not have a high resolution to describe such fields faithfullly. Using generated \textit{Gaussian Random Fields} with various levels of spatial auto correlation, we examine several exact and approximate analysis techniques. Our aim is to outline when certain techniques can be useful and to find a relation between performance and the scale of the structure described by the input datasets.
+The analysis of large datasets can be time consuming and costly. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article looks at several such techniques and at the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, there is a high level of autocorrelation and the structure of the field has a large scale. Datasets need not have a high resolution to describe such fields faithfully. Using generated \textit{Gaussian Random Fields} with various levels of spatial autocorrelation, we examine several exact and approximate analysis techniques. Our aim is to outline when certain techniques can be useful and to find a relation between performance and the scale of the structure described by the input datasets.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:Introduction}
 
-General introduction about CCA, MCA and phenology~\cite{Eshel2011, Storch1999}.
-%Eshel:
-% - when neighboring data points are not entirely independent of one another, there is some redundancy in the time series. 
+This article looks at several techniques to analyse large datasets and at the inherent scale of the structure within the data. When a researcher has an idea about the scale of their data and has a target margin of error, this article can suggest which technique may be relevant for their analysis. The techniques discussed here are by no means novel~\cite{Golub1970, Bjorck1973, Chan1982, Tygert2017}. However, there are domains which are less familiar analysing large datasets, so a review may be beneficial.
 
-\subsection{Gaussian Random Spatial Field}
-\label{sec:Introduction Gaussian Random Spatial Field}
+\subsection{Matrix Size and Rank Decomposition}
+\label{sec:Introduction Matrix Size and Rank Decomposition}
 
-In order to compare analysis techniques and to find the relation between performance and the structrue scale, we need to be able to generate fields which resemble fields often encountered in real-world applications. In particular, the field we will concern ourselves with need to have some amount randomness and some level of spatial auto correlation. Gaussian Random Fields are particularly useful, as their structure scale can be captured in a single parameter. The power spectrum of such a field follows the power law described in equation~\ref{eq:powerLaw} where $k$ is the wave number and $\alpha$ the parameter which controls the level of auto correlation. For 2D spatial fields, rotational invariance is assumed, such that $k$ can be substituted by $||k||$.
+Many datasets can be represented by a matrix of values. Take, for instance, a group of $n$ idividuals who report scores on $m$ different questions. Or take the temperatures at $m$ locations, measured over $n$ time periods. These values can be placed into a matrix with $m$ rows and $n$ columns.
+
+Like a vector, a matrix is a combination of basis vectors, which indicate direction, each with a coefficient, which indicates magnitude. As an extension of the vector, a matrix has two bases, the left- and the right-, or the row- and the column basis. Similarly, these bases can be changed via a rotation. Then, the coefficients will also change, leaving the resulting matrix untouched. A clever basis to rotate into is one where the bases are orthonormal and each subsequent set of left- and right basis vectors explains as much of the remaining variance in the dataset as possible. Such basis vectors are called \textit{Principle Components} or \textit{Empirical Orthogonal Functions} and they may be found via a \textit{Singular Value Decomposition} (\textit{SVD})of the matrix.
+
+If one can find a rotation in which one of the coefficients becomes zero, the matrix seems to be able to be described by fewer parameters than are available. In a sense, it is underdetermined. It's internal dimension is smaller than what could have been guessed from its $m$ by $n$ size. This is the concept of matrix `rank'. An $m$ by $n$ matrix has rank $r$ if the rows and the columns both span a subspace of dimension $r$. If $r = \text{min}(m, n)$, such a matrix is said to have full rank, the maximum number of linearly independent basis vectors. If $r < \text{min}(m, n)$, it is rank deficient.
+
+A rank decomposition or factorization is the splitting of a matrix into a product where each factor has full rank. For an $m$ by $n$ matrix of rank $r$, with $r \leq n \leq m$, we can decompose it into an $m$ by $r$ matrix and an $r$ by $n$ one. We can choose the first factor of this product to be an orthonormal matrix which induces a rotation, i.e. a change-of-basis. The second factor captures the `action' of the matrix, written in the new bases. It is this second matrix, which is often smaller than the original, which is most relevant for further analyses. An \textit{SVD} is a special type of rank decomposition. It results in a set of orthonormal left basis vectors $U$, a list of coefficients $s$ and a set of right basis vectors $V$. For rank deficient matrices, some the of coefficients, called singular values, will be zero.
+
+As noted by Martinsson, the condition that a dataset has precisely rank $r$ is not realistic in practice because the values originate from devices with finite precision~\cite{Martinsson2016}. Even though some singular values of a dataset are not zero, they may be close enough to zero to be considered \textit{noise}. If we take the inherent imprecise nature of real-world datasets into account, we can approximate a dataset by another matrix of rank $l$, with $l < r$. Following the Eckart-Young-Mirsky theorem, the best possible approximation is one described in the same bases as the original dataset, taking a subset of the $l$ largest singular values and truncating the remainder~\cite{Eckart1936}. Taking a threshold~$\epsilon$, the dataset is said to be approximate rank deficient if some singular values fall below~$\epsilon$. Then, it has an $\epsilon$-rank of $l$ and the norm of the difference with its $l$-rank approximation is at most~$\epsilon$.
+
+So, we can identify three types of matrix `sizes'. The first is the size of the full matrix, $m \times n$. Storing such a matrix requires $m \times n$ units of storage and computing the product with a vector requires $m \times n$ flops~\cite{Martinsson2016}. The second type is the rank decomposed version of the matrix. Storing such a matrix requires $m \times r + r \times n$ units of storage and an equal number of flops for the vector multiplication~\cite{Martinsson2016}. If $r$ is small, this can be a substantial improvement. The final definition of `size' approximates the original dataset with a matrix of rank $l$, resulting in even smaller storage and faster computations, while losing as little information as possible.
+
+\subsection{Spatial Fields}
+\label{sec:Introduction Spatial Fields}
+
+In domains such a climate science and phenology, datasets are typically spatial fields, e.g. of temperature. In such fields, values vary slowly and neighbouring points are not entirely independent of one another, neither in space nor in time~cite{Eshel2011}. In this case, there is a high level of autocorrelation and the structure of the field has a large scale. Due to such redundancy, it is likely that the dataset is rank deficient. In this article, we will examine various fields and exploit rank factorization to analyse the data in an efficient manner. The reported results come from calculations performed in a .. \textit{Jupyter Notebook}~\cite{RefNeeded}.
+
+In order to compare analysis techniques and to find the relation between performance and the structure scale, we need to be able to generate fields which resemble fields often encountered in real-world applications. In particular, the field we will concern ourselves with need to have some amount randomness and some level of spatial autocorrelation. Real-valued Gaussian Random Fields are particularly useful, as their structure scale can be captured in a single parameter. The power spectrum of such a field follows the power law described in equation~\ref{eq:powerLaw} where $k$ is the wave number and $\alpha$ the parameter which controls the level of autocorrelation. For 2D spatial fields, rotational invariance is assumed, such that $k$ can be substituted by $|\vec{k}|$.
 \begin{equation}
 \label{eq:powerLaw}
-f = k^{-\alpha}
+f = |\vec{k}|^{-\alpha}
 \end{equation}
 
-In spatial data analysis, other measures of auto correlation are often used~\cite{Eshel2011, Storch1999}. These include Moran's I and the $\Gamma$ index~\cite{Moran1950, Hubert1981, PySAL}.
-
-The singular values of a zero-mean matrix represent the amount of variance in the original dataset explained by the associated singular vector. For Gaussian Random Fields, depending on the scale parameter $\alpha$, the singular values decay quickly. One can try to fit a power law and estimate the exponent, which we'll call $\beta$. 
-
-The $\alpha$ is a measure of the spatial autocorrelation of the field. In particular, fields with large scale structure have a more negative $\alpha$. Additionally, the size of the singular values can be plotted. This is related to the power spectrum and will also provide information about the scale of the structure in the field. Finally, there are other measures of spatial autocorrelation. These include the Gamma Index and Moran's I. The Python module pysal contains functions to calculate these values. We will include them for each plot.
+In spatial data analysis, other measures of autocorrelation are often used~\cite{Eshel2011, Storch1999}. These include Moran's I and the $\Gamma$ index~\cite{Moran1950, Hubert1981, PySAL}. Another measure comes from the singular values. These are related to the amount of variance in the original dataset explained by their associated mode. For fields with autocorrelation, the singular values decay quickly. One can try to fit a power law to them and estimate the exponent, which we'll call $\beta$. % The power spectrum gives the data in terms of harmonics. The SVD gives it in terms of empirical observed functions. Therefore, the singular values will always decay more quickly than the amplitude of the wavenumbers, and $\beta$ will be (slightly) larger than $\alpha$.
+All the measures give an indication of the level of autocorrelation in the field and the scale of the structure represented in the data.
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.8\columnwidth]{Results/plotGammaAndMoransIAndBeta.pdf}
-\caption[Small caption]{Caption}
+\caption[Various measures of autocorrelation]{Various measures of autocorrelation as a function of $\alpha$}
 \label{fig:plotGammaAndMoransIAndBeta}
 \end{center}
 \end{figure}
 When $\alpha$ is less negative, the Gaussian Random Field has smaller scale structure. It is closer to randomness and has less autocorrelation. As expected, this can be seen in the two measures of autocorrelation, which are now smaller.
 
-\subsection{Gaussian Random Spatial-Temporal Field}
-\label{sec:Introduction Gaussian Random Spatial-Temporal Field}
+\subsection{Spatial-Temporal Fields}
+\label{sec:Introduction Spatial-Temporal Fields}
+
+In many data analyses, we are interested in finding frequently occurring patterns. The \textit{maximum covariance analysis} and \textit{canonical correlation analysis} examine the cross-covariance matrix of two datasets and find patterns which occur frequently and simultaneously~\cite{Eshel2011, Storch1999}. Such a pattern, or mode, is a combination of a left- and a right basis vector. One technique to find these modes is to perform an SVD on the product of the standardised datasets. In some fields, the term SVD is often used synonymously with MCA. In an MCA, modes are found where the left- and the right-field covary maximally, wereas in an CCA, they correlate maximally~\cite{Bretherton1992}.
 
 In many real-world applications, the analysis of a field does not only involve a single time snapshot. In fact, it often includes data over multiple weeks, months or years, where the field over the entire time period does not change drastically. Just as there is spatial autocorrelation, there is temporal autocorrelation. In principle, there can be a different level of correlation over time than over space. However, for simplicity, we are using the same $\alpha$ determine the level of autocorrelation in all dimensions.
-
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-
-\subsection{CCA and MCA Analyses}
-\label{sec:Introduction CCA and MCA Analyses}
-
-In an MCA, modes are found where the left- and the right-field covary maximally~\cite{Bretherton1992}. One technique to find these modes is to perform an SVD on the product of the datasets. That is why the term SVD is often used synonymously with MCA.
-In an CCA, modes are found where the left- and the right-field correlate maximally. In practice, the datasets are first standardized before multiplied and decomposed. MCA and CCA are very much related, but the resulting modes and vectors need not be the same~\cite{Bretherton1992}.
-In a PCA, the first and the second dataset are identical. Whether to maximize the covariance or the correlation depends on whether the units of each vector is the same.
 
 \section{Techniques}
 \label{Techniques}
 
-This section will discuss four techniques to analyse large datasets efficiently using SVD.
+This section will discuss four techniques to analyse large datasets efficiently using their singular value decomposition and by exploiting autocorrelation and rank deficiency.
 
 \subsection{Exact Norm Difference via SVD}
 \label{sec:Techniques Exact Norm Difference via SVD}
 
-In real-world application, one often wants to find the norm of the difference between two fields. This can be done by subtracting one matrix from the other and calculating the norm. However, for large matrices, this can be inefficient. Performing an SVD of both matrices can reduce the internal calculations.
+In real-world applications, one often wants to find the norm of the difference between two fields. This can be done by subtracting one matrix from the other and calculating the norm. However, for large matrices, this may be inefficient, especially when they are rank deficient. Performing an SVD of both matrices can reduce the internal calculations.
 
 Let $|| \cdot ||$ indicate the Frobenius norm, $\left\langle \cdot \right\rangle$ the Frobenius inner product and the $\circ$ operator the Hadamard product, then the norm of the difference between matrices $A$ and $B$ is given by equation~\ref{eq:normDifferenceFromUSVs}.
 \begin{equation}
 \label{eq:normDifferenceFromUSVs}
 \begin{split}
 ||A-B||^{2} & = ||A||^{2} + ||B||^{2} - 2 \left\langle A, B \right\rangle \\
-& = s_{1} s_{1}^{T} +  s_{2} s_{2}^{T} - 2 s_{1} \left( U_{1}^{T} U_{2} \circ V_{1}^{T} V_{2} \right) s_{2}^{T}
+& = s_{A}^{T} s_{A} +  s_{B}^{T} s_{B} - 2 s_{A}^{T} \left( U_{A}^{T} U_{B} \circ V_{A}^{T} V_{B} \right) s_{B}
 \end{split}
 \end{equation}
 
@@ -120,16 +125,17 @@ Figure~\ref{fig:normDifferenceFromUSVs} shows that this procedure can determine 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\columnwidth]{Results/normDifferenceFromUSVs.pdf}
-\caption[Small caption]{Caption}
+\caption[Exact norm difference via SVD]{Exact norm difference via SVD}
 \label{fig:normDifferenceFromUSVs}
 \end{center}
 \end{figure}
-For very large datasets, the SVDs may be obtained using a random algorithm reviewed extensively in an article by Halko et al.~\cite{Halko2011}. The number of singular values will then be truncated to the $k$ largest values. In section~\ref{sec:Techniques Approximate SVD via Dimensionality Reduction}, we will also apply this technique to our generated fields. In this case, the resulting norm wil no longer be exact, but the error can be made arbitrarily small by adjusting $k$.
+For very large datasets, the SVDs may be obtained using a random algorithm reviewed extensively in an article by Halko et al.~\cite{Halko2011}. The number of singular values will then be truncated to the $l$ largest values, similar to finding an $\epsilon$-rank approximation. In section~\ref{sec:Techniques Approximate SVD via Dimensionality Reduction}, we will also apply this technique to our generated fields. The resulting norm will no longer be exact, but the error can be made arbitrarily small by adjusting $l$ and $\epsilon$.
 
 \subsection{Exact SVD via QR Decomposition}
 \label{sec:Techniques Exact SVD via QR Decomposition}
-
-The techniques discussed here are by no means novel~\cite{Golub1970, Bjorck1973, Chan1982, Tygert2017}.
+% Using rank(AB) <= min(rank(a), rank(B)).
+% Q is an orthogonal matrix (Golub & Van Loan (1996, §5.2) call Q1R1 the thin QR factorization of A; Trefethen and Bau call this the reduced QR factorization.[1]).
+% QR decomposition can be achieved via several algorithms, including the Gram–Schmidt process, Householder transformations, or Givens rotations. Each of these has efficiency advantages under different conditions. However, our aim is not to produce the most computationally efficient code, but rather to show that there are multiple routes to arrive at the same output, some of which may be faster than others.
 
 In real-world applications, one often wants to find the relation between two fields. Analyses such as the MCA and CCA discussed in section~\ref{sec:Introduction CCA and MCA Analyses} rely on performing an SVD of the cross-covariance or cross-correlation matrix of the two fields. In particular, the two input datasets often have the various gridpointa as rows and will have the sample of recorded values over time as columns. Multiplying these gives the cross-correlation matrix. However, for highly rectangular matrices, when there are many spatial gridpoint but few temporal samples, the resulting cross-correlation matrix is inefficiently large. The qrProductSVD function can take such input data and perform an SVD in an efficient manner. The result is mathematically identical to the full SVD, which means that the difference will be at machine-precision.
 
@@ -211,7 +217,7 @@ The testRandomisedSizeReducedMatrixProduct function determines the percentage of
 
 Due to the multiplication step in this analysis, the typical error due to reduction is larger than before. There is an affect of temporal size on the information loss. The randomisedSquareProductSVD function is especially useful for square input matrices. To be able to do the comparisons with the full SVD quickly, we use rectangular matrices here. The larger the temporal size, the more square the input matrices. As before, the scale of the structure of the field influences the information loss. The effect in this case can be quite dramatic. Especially for more negative $\alpha$, this procedure performs much better than the coarsening procedure.
 
-Note that, unlike the coarsening procedure, the reduction is not applied on each time-slice of the spatial field, but rather on the spatially-flattened time-series. Therefore, the level of spatial auto correlation may not be as important as the level of temporal auto correlation. The proper analysis of this is left for further research.
+Note that, unlike the coarsening procedure, the reduction is not applied on each time-slice of the spatial field, but rather on the spatially-flattened time-series. Therefore, the level of spatial autocorrelation may not be as important as the level of temporal autocorrelation. The proper analysis of this is left for further research.
 
 The reduction of the number of dimensions of each input dataset is actually advised by some researchers, as a method to filter out noise~\cite{Barnett1987}. Especially when the number of temporal samples is small, outliers and random fluctuations could affect the result~\cite{Bretherton1992}. This is because any statistical analysis will choose its regression-coefficients so as to optimize the fit. It may occur that two noise-vectors in the two fields coincidentally covary. In a CCA, where the fields are standardized, this resulting mode may appear important even though it stems from noise. In an MCA, the variance of the noise will be low, so the chance that it will appear as an important mode is less~\cite{Bretherton1992}. One method of finding the right level of filtering is by bootstrapping/cross-validating the results~\cite{Livezey1999}.
 
@@ -235,7 +241,7 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 
 It may be interesting to extend this research to fields other than the Gaussian Random Field. This type was chosen because its structure scale can be captured in a single parameter $\alpha$. In many applications, however, the dataset does not resemble such a Gaussian Random Field.
 
-Additionally, it would be an improvement to relax the assumption that the auto-correlation in the time direction is similar to that in the spatial directions. In fact, it may even be more realistic to have different levels of auto correlation in the $x$ and in the $y$ direction.
+Additionally, it would be an improvement to relax the assumption that the auto-correlation in the time direction is similar to that in the spatial directions. In fact, it may even be more realistic to have different levels of autocorrelation in the $x$ and in the $y$ direction.
 
 Can similar tricks be used to the generalised MCA/CCA analysis, where the input to the SVD in a concatenation of multiple cross-correlation matrices~\cite{Carroll1970, Kettenring1971}?
 
@@ -244,8 +250,6 @@ Can the dimensionality reduction be applied to the spatial part of the spatial-t
 {
 \footnotesize
 \bibliographystyle{abbrv}
-%\phantomsection
-%\label{sec:Bibliography}
 \bibliography{Bibliography}
 }
 
