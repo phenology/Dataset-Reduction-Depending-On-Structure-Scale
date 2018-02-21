@@ -28,7 +28,7 @@
 \newcommand\R[1]{\textcolor{red}{R: #1}}
 
 \begin{document}
-\title{\textbf{Information Loss During Size Reduction Depending On Structure Scale}}
+\title{\textbf{Size Reduction Depending on Structure Scale}}
 
 \author[1]{Laurens Bogaardt}
 \author[1]{Romulo Goncalves}
@@ -89,8 +89,7 @@ All the measures give an indication of the level of autocorrelation in the field
 
 In many real-world applications, the analysis of a field does not only involve a single time snapshot but includes data over multiple weeks, months or years. Then, we are interested in finding patterns which occur frequently. The \textit{maximum covariance analysis} and \textit{canonical correlation analysis} examine the cross-covariance matrix of two datasets and find patterns which occur frequently and simultaneously~\cite{Eshel2011, Storch1999}. Such a pattern, or mode, is a combination of a left- and a right basis vector. One technique to find these modes is to perform an SVD on the product of the standardised datasets. In some domains, the term SVD is used synonymously with MCA. In an MCA, modes are found where the left- and the right-field covary maximally, wereas in an CCA, they correlate maximally~\cite{Bretherton1992}.
 
-Just as there is spatial autocorrelation, there is temporal autocorrelation when the values of the field over the entire time period do not change drastically. In principle, there can be a different level of autocorrelation over time and over space. % In fact, there may be different levels of autocorrelation in different spatial directions, such as East-West en North-South. We leave this extension for further research.
-However, for simplicity, in this article we will use the same $\alpha$ to determine the level of autocorrelation in all dimensions.
+Just as there is spatial autocorrelation, there is temporal autocorrelation when the values of the field over the entire time period do not change drastically. In principle, there can be a different level of autocorrelation over time and over space. However, for simplicity, in this article we will use the same $\alpha$ to determine the level of autocorrelation in all dimensions.
 
 \section{Techniques}
 \label{Techniques}
@@ -124,9 +123,6 @@ Figure~\ref{fig:normDifferenceFromUSVs} shows that this procedure can determine 
 
 \subsection{Exact SVD via QR Decomposition}
 \label{sec:Techniques Exact SVD via QR Decomposition}
-% Using rank(AB) <= min(rank(a), rank(B)).
-% Q is an orthogonal matrix (Golub & Van Loan (1996, §5.2) call Q1R1 the thin QR factorization of A; Trefethen and Bau call this the reduced QR factorization.[1]).
-% QR decomposition can be achieved via several algorithms, including the Gram–Schmidt process, Householder transformations, or Givens rotations. Each of these has efficiency advantages under different conditions. However, our aim is not to produce the most computationally efficient code, but rather to show that there are multiple routes to arrive at the same output, some of which may be faster than others.
 
 In real-world applications, one often wants to find the relation between two fields. Analyses such as the MCA and CCA discussed in section~\ref{sec:Introduction Spatial-Temporal Fields} rely on performing an SVD of the cross-covariance matrix of the two fields.Take wo input datasets with the various spatial gridpoints as rows and the sample of recorded values over time as columns. Centering and multiplying these gives the cross-covariance matrix. However, for highly rectangular matrices, when there are many spatial gridpoint but few temporal samples, the resulting cross-covaraince matrix is inefficiently large and obviously rank deficient. Performing a rank decomposition, such as the \textit{QR Decomposition}, allows one to do the SVD in an efficient manner~\cite{Chan1982, Tygert2017}. The result is mathematically identical to the full SVD, which means that the difference will be at machine-precision.
 
@@ -137,11 +133,12 @@ In real-world applications, one often wants to find the relation between two fie
 \label{fig:qrProductSVD}
 \end{center}
 \end{figure}
+\vspace{-3mm}
 
 \subsection{Approximate SVD via Spatial Coarsening}
 \label{sec:Techniques Approximate SVD via Spatial Coarsening}
 
-Although the previous procedure works well for two rectangular matrices, sometimes the input data is large and square. Performing an SVD on such large datasets will be time consuming and possibly inefficient given the desired level of accuracy. When a spatial field has large scale structure, the values of neighbouring cells do not change drastically. Perhaps these cells can be aggragated together to produce a smaller dataset which still faithfully describes the original field. In this section, we coarsen various Gaussian Random Fields by averaging patches of neighbouring gridpoints. We then compare the result with the full calculation.
+Although the previous procedure works well for two rectangular matrices, sometimes the input data is large and square. Performing an SVD on such large datasets will be time consuming. When a spatial field has large scale structure, the values of neighbouring cells do not change drastically. Perhaps these cells can be aggregated together to produce a smaller dataset which still faithfully describes the original field. In this section, we coarsen various Gaussian Random Fields by averaging patches of neighbouring gridpoints. We then compare the result with the full calculation.
 
 \begin{figure}[h]
 \begin{center}
@@ -150,7 +147,8 @@ Although the previous procedure works well for two rectangular matrices, sometim
 \label{fig:plotSingleSpatialFieldViaCoarsening}
 \end{center}
 \end{figure}
-Figure~\ref{fig:plotSingleSpatialFieldViaCoarsening} shows the percentage error in a coarsening process for matrices of various sizes and $\alpha$'s, and at various levels of coarsening. The error is determined as the norm of the difference between the original matrix and the coarsened version, divided by the norm of the original.
+\vspace{-3mm}
+Figure~\ref{fig:plotSingleSpatialFieldViaCoarsening} shows the percentage error in a coarsening process for matrices of various $\alpha$'s and levels of coarsening. The error is determined as the norm of the difference between the original matrix and the coarsened version, divided by the norm of the original.
 
 We can also coarsen two different fields before analysing their cross-covariance matrix. Figure~\ref{fig:plotProductSpatialTemporalFieldsViaCoarsening} shows the percentage error for various generated matrices.
 Due to the multiplication step in this analysis, the typical error as a result of coarsening is larger than before. As expected, the level of autocorrelation plays an important part, with more negative $\alpha$'s leading to a smaller error. The amount of error during the coarsening process will likely also depend on the similarity between the two datasets. This is one aspect which we do not cover here and leave for further research.
@@ -169,7 +167,7 @@ The coarsening process can speed up the calculation of the SVD, but there are ad
 
 The spatial coarsening process is intuitive and easy to implement. It is not, however, the most efficient way to reduce the size of a dataset. Dimension reduction refers to discarding modes which contribute little to the variance in a dataset. As mentoned in section~\ref{sec:Introduction Matrix Size and Rank Decomposition}, an SVD is precisely the procedure used to find modes which explain as much variance as possible. Discarding the smallest singular values, therefore, gives the best lower rank approximation~\cite{Eckart1936, Martinsson2016}. Performing an SVD on a large dataset, however, is computationally costly. The \textit{Randomised Dimension Reduction} process is more efficient~\cite{Halko2011, Li2016}.
 
-As described in figure~\ref{fig:reduceSizeRandomisedSquare}, this process reduces the input matrix to a smaller square matrix of $l$ by $l$. It also gives two projection matrices which can bring the rows and columns of this smaller matrix back to the bases of the original input. It is a randomised procedure to get a $\epsilon$-rank approximation~\cite{Martinsson2016} and, therefore, the error will be at the order of the size of the largest truncated singular value. Our \textit{Jupyter Notebook} provides more details~\cite{Bogaardt2018}.
+As described in figure~\ref{fig:reduceSizeRandomisedSquare}, this process reduces the input matrix to a smaller square matrix of $l$ by $l$. It also gives two projection matrices which can bring the rows and columns of this smaller matrix back to the bases of the original input. It is a randomised procedure to get a $\epsilon$-rank approximation and, therefore, the error will be at the order of the size of the largest truncated singular value~\cite{Martinsson2016, Halko2011}. Our \textit{Jupyter Notebook} provides more details~\cite{Bogaardt2018}.
 
 \begin{figure}[h]
 \begin{center}
@@ -178,8 +176,8 @@ As described in figure~\ref{fig:reduceSizeRandomisedSquare}, this process reduce
 \label{fig:reduceSizeRandomisedSquare}
 \end{center}
 \end{figure}
-%In the review article by Halko, Martinsson and Tropp on randomised dimension reduction, it is suggested to oversample the reduction. This is because the error introduced in the process is of the same order as the size of the last sampled singular value. If one is interested in the k dominant modes, reducing to a k + l, for some small l, rank approximation will ensure the first k modes are approximated quite well. Indeed, as seen below, the more modes one is interested in, the larger the difference compared with the original matrix.%-qutoe:"the failure probability decreases superexponentially with the oversampling parameter p"
-The Randomised Dimension Reduction process can also be applied to the CCA or MCA analysis of two spatial-temporal fields. Similar to the QR Product SVD, it has the advantage that the SVD is applied to a small $l$ by $l$ matrix, as seen in figure~\ref{fig:randomisedSquareProductSVD}.
+%In the review article by Halko, Martinsson and Tropp on randomised dimension reduction, it is suggested to oversample the reduction. This is because the error introduced in the process is of the same order as the size of the last sampled singular value. If one is interested in the k dominant modes, reducing to a k + l, for some small l, rank approximation will ensure the first k modes are approximated quite well. Indeed, as seen below, the more modes one is interested in, the larger the difference compared with the original matrix.% quote:"the failure probability decreases superexponentially with the oversampling parameter p".
+The randomised dimension reduction process can also be applied to the CCA or MCA analysis of two spatial-temporal fields. Similar to the QR product SVD, it has the advantage that the SVD is applied to a small $l$ by $l$ matrix, as seen in figure~\ref{fig:randomisedSquareProductSVD}.
 
 \begin{figure}[h]
 \begin{center}
@@ -188,7 +186,7 @@ The Randomised Dimension Reduction process can also be applied to the CCA or MCA
 \label{fig:randomisedSquareProductSVD}
 \end{center}
 \end{figure}
-To see the effect of dimension reduction on such a matrix product, let's generate various Gaussian Random Fields and compare their cross-correlation matrix with a reduced version. Figure~\ref{fig:plotRandomisedSizeReducedMatrixProduct} shows that the results are terrible for fields with a small $\alpha$, but high autocorrelation allows for optimisation without aquiring much error.
+To see the effect of dimension reduction on such a matrix product, let's generate various Gaussian Random Fields and compare their cross-correlation matrix with a reduced version. Figure~\ref{fig:plotRandomisedSizeReducedMatrixProduct} shows that the results are terrible for fields with a small $\alpha$, but high autocorrelation allows for optimisation without acquiring much error.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.8\columnwidth]{Results/plotRandomisedSizeReducedMatrixProduct.pdf}
@@ -198,25 +196,14 @@ To see the effect of dimension reduction on such a matrix product, let's generat
 \end{figure}
 Again, we performed our analysis with two generated fields which correlated highly. Whether this correlation influences the amount of error after dimension reduction is left for further research.
 
-%There is an affect of temporal size on the information loss.
+The reduction of the number of dimensions of each input dataset is actually advised by some researchers, as a method to filter out noise~\cite{Barnett1987}. Especially when the number of temporal samples is small, outliers and random fluctuations could affect the result~\cite{Bretherton1992}. This is because any statistical analysis will choose its regression-coefficients so as to optimize the fit. It may occur that two noise-vectors in the two fields coincidentally covary.
 
-Note that, unlike the coarsening procedure, the reduction is not applied on each time-slice of the spatial field, but rather on the spatially-flattened time-series. Therefore, the level of spatial autocorrelation may not be as important as the level of temporal autocorrelation. The proper analysis of this is left for further research.
-
-The reduction of the number of dimensions of each input dataset is actually advised by some researchers, as a method to filter out noise~\cite{Barnett1987}. Especially when the number of temporal samples is small, outliers and random fluctuations could affect the result~\cite{Bretherton1992}. This is because any statistical analysis will choose its regression-coefficients so as to optimize the fit. It may occur that two noise-vectors in the two fields coincidentally covary. In a CCA, where the fields are standardized, this resulting mode may appear important even though it stems from noise. In an MCA, the variance of the noise will be low, so the chance that it will appear as an important mode is less~\cite{Bretherton1992}. One method of finding the right level of filtering is by bootstrapping/cross-validating the results~\cite{Livezey1999}.
-
-%The dimension reduction process can speed up the calculation of the SVD, but there are additional benefits. Out of core stored.
-%Halko:
-%-For a matrix that is too large to fit in fast memory, the randomized techniques require only a constant number of passes over the data, as opposed to O(k) passes for classical algorithms. In fact, it is sometimes possible to perform matrix approximation with a single pass over the data
-%-Compared with standard deterministic algorithms, the randomized methods are often faster and—perhaps surprisingly—more robust.
+When a dataset is too large to fit in memory, the time of transferring the matrix from storage often takes longer than the actual analysis~\cite{Halko2011}. The additional benefit of this procedure is that the randomized technique requires only a constant number of passes over the data, reducing storage communication time.
 
 \section{Applications}
-\label{Applications}
+\label{sec:Applications}
 
-Phenology is the science that studies the timings of recurring biological events such as leafing and blooming as well as their causes and variations in space and time. The Extended Spring Indices (SI-x) are a suite of models that transform daily temperatures into consistent phenological metrics~\cite{Schwartz2013}. In this section, we use a new long-term ($1989$ to $2014$) and high spatial resolution ($1$km) version of the Bloom index, which was recently generated for the US by adapting the SI-x models to a cloud computing environment~\cite{Izquierdo2015}.
-
-Time series of remotely sensed images can be used to derive various land surface phenological metrics. One of these metrics is the so-called Start of Season (SOS), which indicates the beginning of photosynthetic activity in plants. Here we use a SOS product specifically made for the US by processing time series of the Advanced Very High Resolution Radiometer (AVHRR) sensor~\cite{Reed1994}.
-
-Calculated over a square subsection of the USA, we found the Bloom field to have $\alpha \approx 1.4$ and the SOS field to have $\alpha \approx 0.6$~\cite{Bogaardt2018}.
+Phenology is the science that studies the timings of recurring biological events such as leafing and blooming as well as their causes and variations in space and time. Time series of remotely sensed images can be used to derive various land surface phenological metrics. One of these metrics is the so-called Start of Season (SOS), which indicates the beginning of photosynthetic activity in plants. In this section, we use a SOS product made for the US by processing time series of the Advanced Very High Resolution Radiometer sensor~\cite{Reed1994}. The Extended Spring Indices (SI-x) are a suite of models that transform daily temperatures into consistent phenological metrics~\cite{Schwartz2013}. We use a new long-term ($1989$ to $2014$) and high spatial resolution ($1$km) version of the Bloom index, which was recently generated for the US by adapting the SI-x models to a cloud computing environment~\cite{Izquierdo2015}. Estimated over a square subsection of the USA, we find the Bloom field to have $\alpha \approx 1.4$ and the SOS field to have $\alpha \approx 0.6$~\cite{Bogaardt2018}.
 
 \subsection{Approximate SVD via Spatial Coarsening}
 \label{sec:Applications Approximate SVD via Spatial Coarsening}
@@ -226,20 +213,14 @@ After coarsening of a spatial subsection of the Bloom field for $1989$, we found
 \subsection{Approx. SVD via Dimension Reduction}
 \label{sec:Applications Approximate SVD via Dimension Reduction}
 
-After dimension reduction of a spatial subsection of the Bloom field for $1989$, we found a negligible error. This could be expected, as explained in the article by Halko et al.~\cite{Halko2011}. For SOS, the error was higher but still small~\cite{Bogaardt2018}. After reducing both fields for all time periods, we performed an MCA. The error was substantial, between $30\%$ and $60\%$ depending on specific parameters. These results are in agreement with those of generated fields plotted in figure~\ref{fig:plotRandomisedSizeReducedMatrixProduct}.
+After dimension reduction of a spatial subsection of the Bloom field for $1989$, we found a negligible error. This could be expected, as explained in the article by Halko et al.~\cite{Halko2011}. For SOS, the error was higher but still small~\cite{Bogaardt2018}. After reducing both fields for all time periods, we performed an MCA. The error was substantial, between $30\%$ and $50\%$ depending on specific parameters. These results are in agreement with those of generated fields plotted in figure~\ref{fig:plotRandomisedSizeReducedMatrixProduct}.
 
-\section{Further Questions}
-\label{Further Questions}
- %Conclusion: the general rule is to work with square, full rank matrices together with a left- and a right orthonormal rotation matrix.
-It may be interesting to extend this research to fields other than the Gaussian Random Field. This type was chosen because its structure scale can be captured in a single parameter $\alpha$. In many applications, however, the dataset does not resemble such a Gaussian Random Field.
+\section{Conclusion and Further Work}
+\label{sec:Conclusion and Further Work}
 
-Additionally, it would be an improvement to relax the assumption that the auto-correlation in the time direction is similar to that in the spatial directions. In fact, it may even be more realistic to have different levels of autocorrelation in the $x$ and in the $y$ direction.
+Much of the analysis here relies on a priori knowledge of the level of autocorrelation. If datasets are large, it would be nice to have an algorithm to estimate Moran's I using only a small sample of the data. It may also be interesting to extend this research to fields other than the Gaussian Random Field. This type was chosen because its structure scale can be captured in a single parameter $\alpha$. Additionally, it would be an improvement to relax the assumption that the autocorrelation in the time direction is similar to that in the spatial directions. In fact, it may even be more realistic to have different levels of autocorrelation in the North-South and in the East-West direction. Finally, note that, unlike the coarsening procedure, the dimension reduction is not applied on each spatial field per time period, but rather on the spatially flattened timeseries. Therefore, the level of spatial autocorrelation may not be as important as the level of temporal autocorrelation. Further work can examine if better results are obtained when the dimension reduction is applied to the spatial part of the spatial-temporal fields, before it is flattened.
 
-Can similar tricks be used to the generalised MCA/CCA analysis, where the input to the SVD in a concatenation of multiple cross-correlation matrices~\cite{Carroll1970, Kettenring1971}?
-
-Can the dimension reduction be applied to the spatial part of the spatial-temporal fields, before it is flattened?
-
-Can a randomised algorithm be developed to estimate Moran's I or some other measure of autocorrelation, using a sample of the data?
+In conclusion, performing analyses at a coarse level can be beneficial when data collection is difficult. Using the randomised dimension reduction can be helpful for datasets which are too large for internal memory. Finally, rank factorization is a useful technique of splitting datasets into square, full rank matrices together with left- and right orthonormal rotation matrices. Once the analysis is performed on the small square matrix, the output can be rotated back to the original bases, often saving computation time.
 
 {
 \footnotesize
