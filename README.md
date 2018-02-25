@@ -1,2 +1,2 @@
-# Size-Reduction-Depending-On-Structure-Scale
-Size Reduction Depending On Structure Scale
+# Dataset-Reduction-Depending-On-Structure-Scale
+Dataset Reduction Depending On Structure Scale
