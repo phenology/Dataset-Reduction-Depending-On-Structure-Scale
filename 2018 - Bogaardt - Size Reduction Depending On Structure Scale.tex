@@ -22,12 +22,12 @@
 \email{r.goncalves@esciencecenter.nl}
 
 \author{Raul Zurita-Milla}
-\affiliation{\institution{University of Twente}}
+\affiliation{\institution{Faculty ITC, University of Twente}}
 \email{r.zurita-milla@utwente.nl}
 
 \author{Emma Izquierdo-Verdiguier}
-\affiliation{\institution{University of Twente}}
-\email{e.izquierdoverdiguier@utwente.nl}
+\affiliation{\institution{Faculty IPL, Universitat de Valencia}}
+\email{emma.izquierdo@uv.es}
 
 \begin{abstract}
 The analysis of large datasets can be time consuming and costly. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article looks at several such techniques and at the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, there is a high level of autocorrelation and the structure of the field has a large scale. Datasets need not have a high resolution to describe such fields. Using generated \textit{Gaussian Random Fields} with various levels of autocorrelation, we examine rank decomposition, coarsening and approximate SVD procedures. This article outlines when certain techniques can be useful and finds a relation between performance and the scale of the structure described by the input datasets.
@@ -40,7 +40,7 @@ The analysis of large datasets can be time consuming and costly. Often, techniqu
 \section{Introduction}
 \label{sec:Introduction}
 
-This article looks at several analysis techniques, such as the \textit{singular value decomposition} (SVD), which can be hard to apply when working with large datasets. We suggest a number of alternative implementations that may be of use when researchers have an idea about the structure scale of their data and about the desired level of accuracy. We will generate various datasets and exploit autocorrelation and rank decomposition to analyse the data in an efficient manner. The reported results come from calculations performed in an accompanying \textit{Jupyter Notebook}~\cite{Bogaardt2018}. Note that the code was not optimised for speed, but merely serves to illustrate the procedures discussed here. These techniques are by no means novel~\cite{Golub1970, Bjorck1973, Chan1982}. However, there are domains which are less familiar analysing large datasets, so a review may be beneficial.
+This article looks at several analysis techniques, such as the \textit{singular value decomposition} (SVD), which can be hard to apply when working with large datasets. We suggest a number of alternative implementations that may be of use when researchers have an idea about the structure scale of their data and about the desired level of accuracy. We will generate various datasets and exploit autocorrelation and rank decomposition to analyse the data in an efficient manner. The reported results come from calculations performed in an accompanying \textit{Jupyter Notebook}~\cite{Bogaardt2018}. Note that the code was not optimised for speed, but merely serves to illustrate the procedures discussed here. These techniques are not novel~\cite{Golub1970, Bjorck1973, Chan1982}. However, a comprehensive review might be beneficial for domains that are less familiar with analyzing large datasets.
 
 \subsection{Matrix Size and Rank Decomposition}
 \label{sec:Introduction Matrix Size and Rank Decomposition}
