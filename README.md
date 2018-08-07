@@ -1,2 +1,3 @@
-# Dataset-Reduction-Depending-On-Structure-Scale
-Dataset Reduction Depending On Structure Scale
+# Dataset Reduction Techniques To Speed Up SVD Analyses
+
+Performing SVD analyses on large datasets can be computationally costly and time consuming. Often, techniques exist to arrive at the same output, or at a close approximation, which require far less effort. This article examines several such techniques in combination with the inherent scale of the structure within the data. When the values of a dataset vary slowly, e.g. in a spatial field of temperature over a country, the field contains large scale structure and there is a high level of autocorrelation. Datasets do not need a high resolution to describe such fields. Using generated Gaussian Random Fields with various levels of autocorrelation, we examine rank decomposition, coarsening and approximate SVD procedures. This article outlines when certain techniques can be useful and makes predictions about the error incurred in the approximations based on the level of autocorrelation of the input data. Finally, these techniques and predictions are verified using real-world geospatial datasets.
