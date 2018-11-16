@@ -10,7 +10,7 @@ svd.pdf: svd.tex *.tex
 	pdflatex $<
 	#pdflatex $<
 	#dvipdf svd
-	rm svd.aux svd.log 
+	rm svd.aux svd.log svd.out
 	rm svd.blg svd.bbl 
 
 ieee: svd.tex *.tex
