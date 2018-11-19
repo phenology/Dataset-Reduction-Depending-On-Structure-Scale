@@ -180,6 +180,11 @@ satellites~\cite{li14, li14b}. This is because SVD offers an effective method to
 fields~\cite{Eshel2011, Storch1999}.
 %Edit all new references (e.g. izquierdo17 already exists?)
 
+Beside irrelevant noise, real-world datasets also contain redundancy. In domains such as climate science, datasets are typically spatio-temporal
+fields e.g. of global temperatures. In such fields, values vary slowly and neighbouring points are not entirely independent of one another, neither in
+space nor in time~\cite{Eshel2011}. Then, there is a high level of autocorrelation and the field contains large scale structure. Such redundancy in
+the data means the matrix is approximate rank deficient and that it can be reduced in size without losing much relevant information.
+
 SVD-based analysis are not only applicable to spatio-temporal fields and Earth observation images. Many geo-datasets can be represented as a matrix.
 For instance, temperatures measured at~$m$ locations for ~$n$ time periods can be arranged in a matrix with~$m$ rows and~$n$ columns. From a linear
 algebra perspective, this matrix is nothing more than a linear combination of basis vectors that indicate direction, each with a coefficient that
@@ -190,33 +195,32 @@ previous modes. Such basis vectors are called \textit{Principle Components} (PC'
 commonly found via an SVD of the data matrix. Again these vectors can be derived using SVD and are their use is widespread in the geosciences
 \cite{demirel10,hannachi07}. 
 
-Besides noise, real-world datasets also contain redundancy. For example, datasets often contain values that vary slowly and neighbouring values are
-not entirely independent of one another, neither in space nor in time ~\cite{Eshel2011}. In these cases, there is a high level of autocorrelation and
-the data matrix is said to contain large scale structures. Such an autocorrelation means redundancy, which in turn means that the data can be reduced
-in size without losing much relevant information. Often, techniques exist to arrive at the same output, or at a close approximation, which require far
-less effort. This article examines several SVD procedures which exploit autocorrelation and rank decomposition to analyse data in an efficient manner. 
+Performing SVD's on large datasets can be computationally costly and time consuming. This is especially true when the datasets themselves are too
+large to fit in \textit{RAM}-memory, or when an intermediate step in the analysis becomes excessively large. Often, techniques exist to arrive at the
+same output, or at a close approximation, which require far less effort. This article examines several SVD procedures which exploit autocorrelation
+and rank decomposition to analyse data in an efficient manner. We explain which type of problems could be tackled with them and make predictions about
+the error incurred in the approximations based on the level of autocorrelation of the input data. Though the individual techniques are not novel, to
+the best of our knowledge, this is the first review in the geosciences which examines SVD implementations for large datasets from the point of view of
+autocorrelation and data reduction~\cite{Golub1970, Bjorck1973, Chan1982}.
 
-In this study we first use simulated spatio-temporal fields with different levels of autocorrelation to study the relationship between autocorrelation
-and the accuracy of different SVD implementations. Then, the lessons learned with simulated data are verified using real-world datasets. Finally, we
-discuss which type of problems could be tackled with which SVD implementation and predict the error incurred by using approximations based on the
-level of autocorrelation of the input data. To the best of our knowledge, this is the first review that examines various alternative SVD
-implementations for large datasets from the point of view of autocorrelation and data reduction~\cite{Golub1970, Bjorck1973, Chan1982}.
- 
-In fact, our review is not only relevant to datasets with high autocorrelation but also to big geo-datasets. Indeed, performing a standard SVD on a
-big matrix is computationally costly and sometimes even prohibitive. Yet the various SVD implementations presented and discussed in this article help
-to overcome this computational limitation. 
+To arrive at these results, we will simulate datasets with various levels of autocorrelation and subsequently reduce them in size. The amount of error
+incurred in this reduction is determined by comparing the SVD of the reduced dataset to that of the original. Finally, the techniques and predictions,
+based on simulated data, are verified using real-world geospatial datasets. The reported results come from calculations performed in an accompanying
+\textit{Jupyter Notebook} which can be found in the online supplementary material~\cite{Bogaardt2018}.
 
-%The reported results come from calculations performed in an accompanying \textit{Jupyter Notebook} which can be found in the online supplementary material~\cite{Bogaardt2018}.
-The paper is outlined as follows. Section \ref{sec:Material and Methods} reviews matrix decomposition and the standard formulation of SVD. Section
+The paper is outlined as follows. Section \ref{sec:Materials and Methods} reviews matrix decomposition and the standard formulation of SVD. Section
 \ref{sec:Results} explains the different SVD implementations and presents the the simulated and real-world data sets used in their study
-as well as our experimental results. Finally, Section \ref{sec:conclusion} summarizes our main findings and recommendations.
+as well as our experimental results. Finally, Section \ref{sec:Discussion} summarizes our main findings and recommendations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Materials and Methods}
 \label{sec:Materials and Methods}
-
+This section reviews briefly some matrix algebra and expands on a method to simulate fields which resemble those often encountered in real-world
+applications. Additionally, we present several SVD implementations that can be used to analyse large datasets efficiently by exploiting
+autocorrelation and rank deficiency.
 
 \subsection{Matrix Decomposition}
+\label{sec:Matrix Decomposition}
 As briefly mentioned in the introduction, a matrix can be seen as a combination of basis vectors with their coefficients. If there exists a rotation
 for which some coefficients become zero, the matrix needs fewer basis vectors to describe it than are available. In a sense, it is underdetermined;
 its internal dimension is smaller than what would be expected from its $m$~by~$n$ size. This is the concept of matrix \textit{rank}; if the rows and
@@ -241,7 +245,6 @@ at most~$\epsilon$~\cite{Martinsson2016}. The idea is to reduce the data to the 
 
 \subsection{Simulated Spatio-Temporal Fields}
 \label{sec:Materials and Methods/Simulated Spatio-Temporal Fields}
-This section expands on a method to simulate fields which resemble those often encountered in real-world applications. Additionally, we discuss how to measure the level of autocorrelation of a~field.
 As simulated spatio-temporal fields, real-valued \textit{Gaussian Random Fields} (GRF's) are particularly useful because their structure scale can be
 captured in a single parameter. For such rotational invariant fields, the spectrum follows the power law described by $P(\vec{k}) \sim
 |\vec{k}|^{-\alpha}$ where $\vec{k} \,$ is the wavevector and~$\alpha$ the parameter which controls the level of autocorrelation.
@@ -263,8 +266,8 @@ Just as there is spatial autocorrelation, there is temporal autocorrelation, whe
 drastically. In principle, there can be different levels of autocorrelation over time and over space. However, for simplicity, in our analyses we will
 use the same level of autocorrelation in all directions, determined by parameter~$\alpha$.
 
-\subsection{SVD}
-\label{svd}
+\subsection{SVD Techniques}
+\label{sec: SVD Techniques}
 The SVD is used factorize a matrix while finding its eigenvectors and eigenvalues. A sort review of SVD from a mathematical perspective is as follows: \\
 Let $\A$ be a matrix ($\mathbb{R}^{n \times m}$, where if $n~=m$, $\A$ is a rectangular matrix and if $n=m$, $\A$ is a square matrix), the SVD is the
 factorization of the matrix: $\A=\U\S\V^{\top}$ where $\U \in \mathbb{R}^{n \times n}$ is the eigenvector matrix associated with non-zero eigenvalues
@@ -272,9 +275,10 @@ of $\A\A^{\top}$, $\V \in \mathbb{R}^{m \times m}$ is the eigenvector matrix ass
 diagonal matrix that contains the Singular Values of $\A$. The Singular Values are the square root eigenvalues of $\A\A^{\top}$. Matrix $\A$ can be a
 singular matrix or a product between two matrix and we can express also the SVD in vectorial from: $\A=\sum_{i=1}^{d_f} \s_i \u_i \v_i^{\top}$.
 
-\subsection{SVD Techniques}
-\label{sec: SVD Techniques}
-This section reviews several SVD implementations that can be used to analyse large datasets efficiently by exploiting autocorrelation and rank deficiency. Additional methods exist, though the ones covered here have three main benefits: coarsening is an easy-to-implement method, randomised dimensionality reduction provides the best possible approximation for any level of reduction and the QR decomposition provides an exact and efficient result when interested in the SVD of the product of two matrices.
+There are several SVD implementations that can be used to analyse large datasets efficiently by exploiting autocorrelation and rank deficiency.
+Additional methods exist, though the ones covered here have three main benefits: coarsening is an easy-to-implement method, randomised dimensionality
+reduction provides the best possible approximation for any level of reduction and the QR decomposition provides an exact and efficient result when
+interested in the SVD of the product of two matrices.
 
 \begin{figure}[H]
 \centering
@@ -289,6 +293,10 @@ When the SVD is performed on the product of two matrices, the best course of act
 
 \section{Results}
 \label{sec:Results}
+Using simulated spatio-temporal fields with different levels of autocorrelation, we first study the relation between data characteristics and the
+accuracy of different SVD implementations. Then, the lessons learned are verified using real-world datasets. We discuss which type of problems could
+be tackled with which SVD implementation and predict the error incurred by using approximations based on the level of autocorrelation of the input
+data.
 
 \subsection{Measures of Autocorrelation}
 \label{sec:Materials and Methods/Measures of Autocorrelation}
@@ -311,7 +319,7 @@ A high $\alpha$ implies a high Moran's $I$ and a high $\beta$, which, in turn, i
 \subsubsection{Approximate SVD of a Single Matrix via Coarsening}
 \label{sec:Results/Approximate SVD of a Single Matrix via Coarsening}
 
-When a spatial field has large scale structure, the values of neighbouring cells do not change drastically. Perhaps these cells can be aggregated together to produce a smaller dataset which still faithfully describes the original field. Here, we exploit the data redundancy described in section~\ref{sec:Introduction/Data Characteristics} and coarsen two dimensional GRF's.
+When a spatial field has large scale structure, the values of neighbouring cells do not change drastically. Perhaps these cells can be aggregated together to produce a smaller dataset which still faithfully describes the original field. Here, we exploit the data redundancy described in section~\ref{sec:Introduction} and coarsen two dimensional GRF's.
 
 Figure~\ref{fig:plotSingleSpatialFieldViaCoarsening} shows the error in a coarsening process for matrices of various~$\alpha$'s and for different coarsening window sizes. The error is determined as the norm of the difference between the original matrix and the coarsened version, divided by the norm of the original~\cite{Bogaardt2018}. Other measures of similarity, such as the correlation between the two datasets, are likely to show the same effects. % RZ: remove.this statement will puzzle the reviewers and prompt them to ask questions ... LB: I prefer keeping this in, but changed the emphasis a bit.
 Note that coarsening a two dimensional field at level 5 reduces the dataset by $25$ times. For fields with high autocorrelation, e.g. $\alpha=3$, the coarsened version differs by less than~$10\%$ from the original.
@@ -326,7 +334,7 @@ Note that coarsening a two dimensional field at level 5 reduces the dataset by $
 \subsubsection{Approximate SVD of a Single Matrix via Dimensionality Reduction}
 \label{sec:Results/Approximate SVD of a Single Matrix via Dimensionality Reduction}
 
-An alternative method of reducing the size of a matrix is via randomised dimensionality reduction. During dimensionality reduction, the number of basis-vectors of a matrix is truncated to the~$l$ most important ones, similar to finding an $\epsilon$-rank approximation. Remember from section~\ref{sec:Introduction/Data Characteristics} that, if a dataset is noisy, low rank approximations can contain most of the relevant information. Furthermore. matrices with low rank require less storage space and fewer flops for vector multiplications.
+An alternative method of reducing the size of a matrix is via randomised dimensionality reduction. During dimensionality reduction, the number of basis-vectors of a matrix is truncated to the~$l$ most important ones, similar to finding an $\epsilon$-rank approximation. Remember from section~\ref{sec:Introduction} that, if a dataset is noisy, low rank approximations can contain most of the relevant information. Furthermore. matrices with low rank require less storage space and fewer flops for vector multiplications.
 
 A random algorithm exists which performs an approximate rank decomposition of a large matrix efficiently. The mathematics behind this algorithm is reviewed extensively elsewhere, here we examine its performance on datasets with autocorrelation~\cite{Halko2011, Li2016}. The main idea is to sample from the original values, taking as many values as needed to achieve the required accuracy. One of its benefits is that this algorithm requires only a small number of passes over the data, which, for large matrices stored out-of-core, reduces reading time. Additionally, the incurred error in the approximation can be made arbitrarily small by adjusting~$l$ and~$\epsilon$, giving the researcher full control over the balance between computation cost and accuracy.
 
@@ -508,7 +516,7 @@ The energy field has a Moran's $I \approx 0.93$, while the latent heat field has
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
-
+\label{sec:Discussion}
 %Authors should discuss the results and how they can be interpreted in perspective of previous studies and of the working hypotheses. The findings and their implications should be discussed in the broadest context possible. Future research directions may also be highlighted.
 
 \subsection{Further Work and Caveats}
